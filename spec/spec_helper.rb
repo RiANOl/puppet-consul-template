@@ -12,8 +12,4 @@ RSpec.configure do |c|
     :ipaddress_lo            => '127.0.0.1',
     :consul_template_version => 'unknown',
   }
-
-  c.after(:suite) do
-    RSpec::Puppet::Coverage.report!
-  end
 end

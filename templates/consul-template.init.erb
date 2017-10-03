@@ -1,0 +1,105 @@
+#!/bin/bash
+#
+#       /etc/init.d/consul-template
+#
+#       Daemonize the consul-template.
+#
+# chkconfig:   2345 95 20
+# description: Provide a convenient way to populate values \
+#  from Consul into the file system.
+# processname: consul-template
+# pidfile: /var/run/consul-template/pidfile
+
+# Source function library.
+. /etc/init.d/functions
+
+CONSUL_TEMPLATE=<%= scope.lookupvar('consul_template::bin_dir') %>/consul-template
+CONFIG=<%= scope.lookupvar('consul_template::config_dir') %>/config.hcl
+PID_FILE=/var/run/consul-template/consul-template.pid
+LOG_FILE=<%= scope.lookupvar('consul_template::log_file') %>
+
+[ -e /etc/sysconfig/consul-template ] && . /etc/sysconfig/consul-template
+
+export GOMAXPROCS=${GOMAXPROCS:-2}
+
+#
+# Create the /var/run/consul-template directory, which can live on a tmpfs
+# filesystem and be destroyed between reboots.
+#
+mkrundir() {
+        [ ! -d /var/run/consul-template ] && mkdir -p /var/run/consul-template
+        chown <%= scope.lookupvar('consul_template::user') %> /var/run/consul-template
+}
+
+#
+# Create a PID file if it doesn't already exist, for clean upgrades
+# from previous init-script controlled daemons.
+#
+KILLPROC_OPT="-p ${PID_FILE}"
+mkpidfile() {
+        # Create PID file if it didn't exist
+        mkrundir
+        [ ! -f $PID_FILE ] && pidofproc $CONSUL_TEMPLATE > $PID_FILE
+        chown <%= scope.lookupvar('consul_template::user') %> /var/run/consul-template
+        if [ $? -ne 0 ] ; then
+            rm $PID_FILE
+            KILLPROC_OPT=""
+        fi
+}
+
+start() {
+        echo -n "Starting consul-template: "
+        mkrundir
+        [ -f $PID_FILE ] && rm $PID_FILE
+        daemon --user=<%= scope.lookupvar('consul_template::user') %> \
+            --pidfile="$PID_FILE" \
+            $("$CONSUL_TEMPLATE" -config="$CONFIG" <%= scope.lookupvar('consul_template::extra_options') %> >> "$LOG_FILE" &)
+        retcode=$?
+        echo
+        [ $retcode = 0 ] && touch /var/lock/subsys/consul-template
+        return $retcode
+}
+
+stop() {
+        DELAY=5 # seconds maximum to wait for a leave
+
+        echo -n "Shutting down consul-template: "
+        mkpidfile
+
+        killproc $KILLPROC_OPT $CONSUL_TEMPLATE
+        retcode=$?
+        echo
+        [ $retcode = 0 ] && rm -f /var/lock/subsys/consul-template $PID_FILE
+        return $retcode
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status -p $PID_FILE
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    reload)
+        mkpidfile
+        killproc $KILLPROC_OPT $CONSUL_TEMPLATE -HUP
+        ;;
+    condrestart)
+        [ -f /var/lock/subsys/consul-template ] && restart || :
+        ;;
+    *)
+        echo "Usage: consul-template {start|stop|status|reload|restart}"
+        exit 1
+        ;;
+esac
+retcode=$?
+# Don't let the [OK] get stomped on.
+echo
+exit $retcode

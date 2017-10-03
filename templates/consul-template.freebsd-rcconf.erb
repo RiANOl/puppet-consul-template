@@ -1,0 +1,24 @@
+# Managed by Puppet
+<% if scope.lookupvar('consul_template::service_enable') %>
+consul_template_enable="YES"
+<% else %>
+consul_template_enable="NO"
+<% end %>
+<% if scope.lookupvar('consul_template::user') %>
+consul_template_user="<%= scope.lookupvar('consul_template::user') %>"
+<% end %>
+<% if scope.lookupvar('consul_template::group') %>
+consul_template_group="<%= scope.lookupvar('consul_template::group') %>"
+<% end %>
+<% if scope.lookupvar('consul_template::bin_dir') %>
+consul_template_bin_dir="<%= scope.lookupvar('consul_template::bin_dir') %>"
+<% end %>
+<% if scope.lookupvar('consul_template::config_dir') %>
+consul_template_config_dir="<%= scope.lookupvar('consul_template::config_dir') %>"
+<% end %>
+<% if scope.lookupvar('consul_template::extra_options') %>
+consul_template_extra_options="<%= scope.lookupvar('consul_template::extra_options') %>"
+<% end %>
+<% if scope.lookupvar('consul_template::log_file') %>
+consul_template_log_file="<%= scope.lookupvar('consul_template::log_file') %>"
+<% end %>

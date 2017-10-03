@@ -1,0 +1,15 @@
+[Unit]
+Description=Consul Template
+After=network.target
+
+[Service]
+User=<%= scope.lookupvar('consul_template::user') %>
+Group=<%= scope.lookupvar('consul_template::group') %>
+ExecStart=<%= scope.lookupvar('consul_template::bin_dir') %>/consul-template \
+  -config <%= scope.lookupvar('consul_template::config_dir') %>/config.hcl <%= scope.lookupvar('consul_template::extra_options') %>
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+LimitNOFILE=131072
+
+[Install]
+WantedBy=multi-user.target

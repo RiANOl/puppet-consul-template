@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>             <string>com.hashicorp.consul-template</string>
+    <key>UserName</key>          <string><%= scope.lookupvar('consul_template::user') %></string>
+    <key>GroupName</key>         <string><%= scope.lookupvar('consul_template::group') %></string>
+<% if scope.lookupvar('consul_template::service_enable') %>
+    <key>Disabled</key>          <false/>
+<% else %>
+    <key>Disabled></key>         <true/>
+<% end %>
+    <key>RunAtLoad</key>         <true/>
+    <key>KeepAlive</key>         <true/>
+    <key>ProgramArguments</key>
+        <array>
+            <string><%= scope.lookupvar('consul_template::bin_dir') %>/consul-template</string>
+            <string>-config</string>
+            <string><%= scope.lookupvar('consul_template::config_dir') %>/config.hcl</string>
+<% require 'shellwords' %>
+<% Shellwords.split(scope.lookupvar('consul_template::extra_options')).each do |extra_option| %>
+            <string><%= extra_option %></string>
+<% end %>
+        </array>
+</dict>
+</plist>

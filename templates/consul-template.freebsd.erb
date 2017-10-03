@@ -1,0 +1,39 @@
+#!/bin/sh
+
+# Managed by Puppet
+#
+# PROVIDE: consul-template
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name=consul_template
+rcvar=consul_template_enable
+extra_commands="reload"
+
+load_rc_config $name
+
+: ${consul_template_enable:="NO"}
+: ${consul_template_user:="root"}
+: ${consul_template_group:="root"}
+: ${consul_template_bin_dir:="/usr/local/bin"}
+: ${consul_template_config_dir:="/usr/local/etc/consul-template"}
+: ${consul_template_extra_options:=""}
+: ${consul_template_log_file:="/dev/null"}
+
+pidfile=/var/run/consul-template.pid
+procname="${consul_template_bin_dir}/consul-template"
+command="/usr/sbin/daemon"
+command_args="-p ${pidfile} ${procname} -config=${consul_template_config_dir}/config.hcl ${consul_template_extra_options} >> ${consul_template_log_file}"
+
+start_precmd=consul_template_startprecmd
+
+consul_template_startprecmd()
+{
+        if [ ! -e ${pidfile} ]; then
+                install -o ${consul_template_user} -g ${consul_template_group} /dev/null ${pidfile};
+        fi
+}
+
+run_rc_command "$1"
