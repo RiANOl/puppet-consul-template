@@ -139,6 +139,9 @@ describe 'consul_template::watch' do
       destination: '/path/to/destination',
       source: 'puppet:///path/to/source',
       command: 'do something',
+      command_timeout: '60s',
+      error_on_missing_key: true,
+      backup: true,
       perms: '0000',
     }}
 
@@ -148,6 +151,9 @@ describe 'consul_template::watch' do
       .with_content(/source = "\/etc\/consul-template\/my_watch.ctmpl"/)
       .with_content(/destination = "\/path\/to\/destination"/)
       .with_content(/command = "do something"/)
+      .with_content(/command_timeout = "60s"/)
+      .with_content(/error_on_missing_key = true/)
+      .with_content(/backup = true/)
       .with_content(/perms = "0000"/)
     }
   end

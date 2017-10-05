@@ -1,13 +1,16 @@
 #
 define consul_template::watch (
   String $destination,
-  Optional[String] $source          = undef,
-  Optional[String] $contents        = undef,
-  Optional[String] $template        = undef,
-  Optional[String] $inline_template = undef,
-  Optional[String] $command         = undef,
-  Hash $template_vars               = {},
-  Pattern[/^[0-9]{4}$/] $perms      = '0644',
+  Optional[String] $source                = undef,
+  Optional[String] $contents              = undef,
+  Optional[String] $template              = undef,
+  Optional[String] $inline_template       = undef,
+  Optional[String] $command               = undef,
+  Optional[String] $command_timeout       = undef,
+  Optional[Boolean] $error_on_missing_key = undef,
+  Optional[Boolean] $backup               = undef,
+  Pattern[/^[0-9]{4}$/] $perms            = '0644',
+  Hash $template_vars                     = {},
 ) {
   include ::consul_template
 
@@ -52,11 +55,14 @@ define consul_template::watch (
   create_resources(file, $files)
 
   $config_hash = {
-    template => delete_undef_values({
-      source      => $real_source,
-      destination => $destination,
-      command     => $command,
-      perms       => $perms,
+    template               => delete_undef_values({
+      source               => $real_source,
+      destination          => $destination,
+      command              => $command,
+      command_timeout      => $command_timeout,
+      error_on_missing_key => $error_on_missing_key,
+      backup               => $backup,
+      perms                => $perms,
     })
   }
 
